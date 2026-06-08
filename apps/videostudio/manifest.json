@@ -1,0 +1,15 @@
+{
+  "name": "AlphaOS — AI Video Studio",
+  "short_name": "AI Video Studio",
+  "description": "Crea video con AI: script, voiceover, immagini, montaggio automatico.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0a0a0b",
+  "theme_color": "#0ea5e9",
+  "orientation": "any",
+  "icons": [
+    { "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' fill='%230a0a0b'/><text x='50%' y='55%' font-size='120' text-anchor='middle' dominant-baseline='middle'>🎬</text></svg>", "sizes": "192x192", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' fill='%230a0a0b'/><text x='50%' y='55%' font-size='320' text-anchor='middle' dominant-baseline='middle'>🎬</text></svg>", "sizes": "512x512", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

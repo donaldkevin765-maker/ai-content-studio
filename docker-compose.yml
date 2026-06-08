@@ -1,0 +1,112 @@
+version: '3.8'
+
+services:
+  # Database
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: videostudio
+      POSTGRES_USER: videostudio
+      POSTGRES_PASSWORD: videostudio
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U videostudio"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Redis per Celery
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # Ollama (LLM locale)
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+  # Worker Celery per rendering video
+  videostudio-worker:
+    build:
+      context: ./apps/videostudio
+      dockerfile: Dockerfile.worker
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://videostudio:videostudio@postgres:5432/videostudio
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - OLLAMA_BASE_URL=http://ollama:11434
+      - OLLAMA_MODEL=llama3.2
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      ollama:
+        condition: service_started
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+  # API FastAPI (sviluppo locale)
+  videostudio-api:
+    build:
+      context: ./apps/videostudio
+      dockerfile: Dockerfile.api
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://videostudio:videostudio@postgres:5432/videostudio
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - OLLAMA_BASE_URL=http://ollama:11434
+      - OLLAMA_MODEL=llama3.2
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      ollama:
+        condition: service_started
+    volumes:
+      - ./apps/videostudio:/app
+      - videostudio_output:/app/output
+
+  # AlphaOS (sviluppo locale - serve statico)
+  alphaos:
+    image: nginx:alpine
+    ports:
+      - "3000:80"
+    volumes:
+      - ./apps/alphaos:/usr/share/nginx/html:ro
+      - ./nginx.alphaos.conf:/etc/nginx/conf.d/default.conf:ro
+
+volumes:
+  postgres_data:
+  redis_data:
+  ollama_data:
+  videostudio_output:

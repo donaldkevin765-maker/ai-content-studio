@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="it" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AlphaOS — AI Video Studio</title>
+<meta name="description" content="Crea video con AI: script, voiceover, immagini, montaggio automatico.">
+<meta name="theme-color" content="#0a0a0b">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎬</text></svg>">
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect width='180' height='180' fill='%230a0a0b'/><text x='50%' y='55%' font-size='130' text-anchor='middle' dominant-baseline='middle'>🎬</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Fira+Code:wght@300;400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg-canvas:#0a0a0b;--bg-surface:#121214;--bg-elevated:#1a1a1e;--bg-hover:#222226;--border-light:#27272a;--border-strong:#3f3f46;--text-primary:#f4f4f5;--text-secondary:#a1a1aa;--text-tertiary:#71717a;--brand-accent:#0ea5e9;--brand-accent-dim:rgba(14,165,233,0.15);--semantic-success:#10b981;--semantic-warning:#f59e0b;--semantic-danger:#ef4444;--radius-sm:8px;--radius-md:12px;--radius-lg:20px;--transition:all .3s cubic-bezier(0.4,0,0.2,1)}
+html,body{height:100%;font-family:'Inter',sans-serif;background:var(--bg-canvas);color:var(--text-primary);overflow:hidden}
+::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border-strong);border-radius:3px}
+#boot{position:fixed;inset:0;z-index:9999;background:var(--bg-canvas);display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .8s,transform .8s}
+#boot.hidden{opacity:0;transform:scale(1.05);pointer-events:none}
+.boot-logo{font-size:2.8rem;font-weight:800;letter-spacing:-2px;background:linear-gradient(135deg,var(--brand-accent),#7c3aed);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:12px}
+.boot-sub{font-size:.8rem;color:var(--text-tertiary);font-family:'Fira Code',monospace;letter-spacing:3px;text-transform:uppercase}
+.boot-dots{display:flex;gap:6px;margin-top:32px}
+.boot-dots span{width:10px;height:10px;border-radius:50%;background:var(--brand-accent);animation:bd 1.2s infinite}
+.boot-dots span:nth-child(2){animation-delay:.15s}.boot-dots span:nth-child(3){animation-delay:.3s}
+@keyframes bd{0%,80%,100%{transform:scale(.4);opacity:.3}40%{transform:scale(1);opacity:1}}
+.boot-msg{margin-top:20px;font-size:.75rem;color:var(--text-tertiary);font-family:'Fira Code',monospace}
+.top{display:flex;align-items:center;gap:16px;padding:12px 24px;background:var(--bg-surface);border-bottom:1px solid var(--border-light);flex-shrink:0;z-index:100}
+.top-brand{font-weight:700;font-size:1rem;display:flex;align-items:center;gap:10px}
+.top-brand span{background:linear-gradient(135deg,var(--brand-accent),#7c3aed);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.top-badge{font-size:.6rem;background:var(--brand-accent-dim);color:var(--brand-accent);padding:2px 8px;border-radius:20px;font-weight:500;border:1px solid rgba(14,165,233,.2)}
+.top-right{margin-left:auto;display:flex;align-items:center;gap:8px}
+.btn{padding:8px 16px;border-radius:var(--radius-sm);border:1px solid var(--border-light);background:var(--bg-elevated);color:var(--text-secondary);cursor:pointer;font-size:.8rem;font-weight:500;transition:var(--transition);font-family:'Inter',sans-serif;display:inline-flex;align-items:center;gap:6px;text-decoration:none}
+.btn:hover{background:var(--bg-hover);color:var(--text-primary);transform:translateY(-1px)}
+.btn-p{background:var(--brand-accent);color:#fff;border-color:var(--brand-accent)}
+.btn-p:hover{background:#0284c7;box-shadow:0 4px 20px rgba(14,165,233,.3)}
+.btn-p:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none}
+.btn-s{background:linear-gradient(135deg,var(--semantic-success),#059669);color:#fff;border:none}
+.btn-s:hover{box-shadow:0 4px 20px rgba(16,185,129,.3)}
+.btn-w{background:linear-gradient(135deg,var(--semantic-warning),#d97706);color:#fff;border:none}
+.btn-w:hover{box-shadow:0 4px 20px rgba(245,158,11,.3)}
+.main{display:flex;flex:1;overflow:hidden}
+.side{width:220px;background:var(--bg-surface);border-right:1px solid var(--border-light);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto}
+.side-section{padding:16px 12px;border-bottom:1px solid var(--border-light)}
+.side-label{font-size:.65rem;text-transform:uppercase;letter-spacing:1.5px;color:var(--text-tertiary);margin-bottom:10px;font-weight:600}
+.side-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--radius-sm);cursor:pointer;transition:var(--transition);font-size:.85rem;color:var(--text-secondary);font-weight:500}
+.side-item:hover{background:var(--bg-hover);color:var(--text-primary)}
+.side-item.active{background:var(--brand-accent-dim);color:var(--brand-accent);border:1px solid rgba(14,165,233,.2)}
+.content{flex:1;overflow-y:auto;padding:24px 28px}
+.panel{display:none;animation:fi .4s ease}.panel.active{display:block}
+@keyframes fi{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.phead{margin-bottom:20px}
+.ptitle{font-size:1.6rem;font-weight:700;letter-spacing:-.5px;margin-bottom:6px}
+.pdesc{font-size:.9rem;color:var(--text-tertiary)}
+.card{background:var(--bg-surface);border:1px solid var(--border-light);border-radius:var(--radius-md);padding:20px;margin-bottom:16px}
+.card-h{font-size:1rem;font-weight:600;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.row{display:flex;gap:12px;margin-bottom:12px;align-items:center;flex-wrap:wrap}
+.row label{font-size:.85rem;color:var(--text-secondary);min-width:120px}
+.row input,.row select,.row textarea{flex:1;padding:10px 14px;border-radius:6px;background:var(--bg-elevated);border:1px solid var(--border-light);color:var(--text-primary);font-size:.85rem;outline:none;transition:var(--transition);font-family:'Inter',sans-serif;min-width:0}
+.row input:focus,.row select:focus{border-color:var(--brand-accent)}
+.row input::placeholder{color:var(--text-tertiary)}
+.p-card{background:var(--bg-elevated);border:1px solid var(--border-light);border-radius:var(--radius-sm);padding:16px;transition:var(--transition);cursor:pointer;display:flex;flex-direction:column;gap:8px}
+.p-card:hover{border-color:var(--border-strong);background:var(--bg-hover);transform:translateY(-2px)}
+.p-card .p-name{font-size:.95rem;font-weight:600;color:var(--text-primary)}
+.p-card .p-meta{font-size:.72rem;color:var(--text-tertiary);font-family:'Fira Code',monospace}
+.p-card .p-stats{display:flex;gap:12px;font-size:.7rem;color:var(--text-tertiary);margin-top:4px}
+.v-card{background:var(--bg-elevated);border:1px solid var(--border-light);border-radius:var(--radius-sm);padding:14px 16px;transition:var(--transition);cursor:pointer;display:flex;flex-direction:column;gap:8px}
+.v-card:hover{border-color:var(--border-strong);background:var(--bg-hover);transform:translateY(-1px)}
+.v-card .v-head{display:flex;align-items:center;gap:10px}
+.v-card .v-title{font-size:.88rem;font-weight:500;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.v-card .v-meta{font-size:.7rem;color:var(--text-tertiary);font-family:'Fira Code',monospace;display:flex;gap:10px;flex-wrap:wrap}
+.status-dot{width:8px;height:8px;border-radius:50%;display:inline-block;flex-shrink:0}
+.status-dot.pending{background:var(--text-tertiary)}
+.status-dot.script_ready{background:var(--brand-accent)}
+.status-dot.rendering{background:var(--semantic-warning);animation:pulse 1s infinite}
+.status-dot.completed{background:var(--semantic-success)}
+.status-dot.error{background:var(--semantic-danger)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.progress-bar{height:6px;background:var(--border-light);border-radius:3px;overflow:hidden;margin-top:4px}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--brand-accent),#38bdf8);transition:width .3s ease;border-radius:3px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.empty{text-align:center;padding:40px;color:var(--text-tertiary);font-size:.9rem}
+.modal-overlay{position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.8);backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;padding:20px}
+.modal-overlay.v{display:flex}
+.modal{background:var(--bg-surface);border:1px solid var(--border-strong);border-radius:var(--radius-lg);width:100%;max-width:720px;max-height:85vh;display:flex;flex-direction:column}
+.modal-h{padding:16px 20px;border-bottom:1px solid var(--border-light);font-weight:600;display:flex;justify-content:space-between;align-items:center;font-size:1rem}
+.modal-h button{background:none;border:none;color:var(--text-tertiary);cursor:pointer;font-size:1.2rem;padding:4px 8px}
+.modal-b{flex:1;overflow-y:auto;padding:20px}
+.modal-f{padding:14px 20px;border-top:1px solid var(--border-light);display:flex;gap:10px;justify-content:flex-end}
+.scene-item{padding:14px 16px;background:var(--bg-elevated);border-left:3px solid var(--brand-accent);border-radius:var(--radius-sm);margin-bottom:10px}
+.scene-item .s-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.scene-item .s-num{font-size:.7rem;color:var(--text-tertiary);font-family:'Fira Code',monospace}
+.scene-item .s-dur{font-size:.7rem;color:var(--text-tertiary);font-family:'Fira Code',monospace}
+.scene-item .s-text{font-size:.85rem;color:var(--text-secondary);line-height:1.5}
+.scene-item .s-prompt{font-size:.7rem;color:var(--text-tertiary);margin-top:6px;font-style:italic}
+#toasts{position:fixed;bottom:24px;right:24px;z-index:9998;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.toast{padding:12px 18px;border-radius:var(--radius-sm);background:var(--bg-elevated);border:1px solid var(--border-light);font-size:.82rem;color:var(--text-secondary);display:flex;align-items:center;gap:10px;animation:ti .3s ease;box-shadow:0 8px 30px rgba(0,0,0,.4);max-width:380px;pointer-events:auto}
+.toast.s{border-color:var(--semantic-success)}.toast.e{border-color:var(--semantic-danger)}.toast.w{border-color:var(--semantic-warning)}
+@keyframes ti{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+.toast.out{animation:to .3s ease forwards}
+@keyframes to{to{opacity:0;transform:translateX(20px)}}
+.live-tag{font-size:.6rem;background:var(--semantic-warning);color:#000;padding:2px 6px;border-radius:10px;font-weight:700;letter-spacing:1px;margin-left:6px;animation:pulse 1.5s infinite}
+.video-preview{width:100%;border-radius:var(--radius-sm);background:#000;margin-top:12px}
+@media(max-width:900px){.side{display:none}.content{padding:16px}.grid{grid-template-columns:1fr}.row{flex-direction:column;align-items:stretch}.row label{min-width:0}}
+</style>
+</head>
+<body>
+<div id="boot"><div class="boot-logo">AlphaOS</div><div class="boot-sub">AI Video Studio</div><div class="boot-dots"><span></span><span></span><span></span></div><div class="boot-msg" id="boot-msg">Avvio piattaforma video AI...</div></div>
+<div id="toasts"></div>
+<div id="app" style="display:flex;flex-direction:column;height:100vh;overflow:hidden">
+  <div class="top">
+    <div class="top-brand"><span>AlphaOS</span><span class="top-badge">AI Video Studio</span><span class="live-tag" id="live-tag" style="display:none">LIVE</span></div>
+    <div class="top-right">
+      <button class="btn" onclick="Studio.UI.switchPanel('settings')" title="Impostazioni">&#9881;</button>
+      <a href="../../index.html" class="btn">&#9664; AlphaOS</a>
+    </div>
+  </div>
+  <div class="main">
+    <div class="side">
+      <div class="side-section">
+        <div class="side-label">Studio</div>
+        <div class="side-item active" data-panel="projects" onclick="Studio.UI.switchPanel('projects')">&#128193; Progetti</div>
+        <div class="side-item" data-panel="create" onclick="Studio.UI.switchPanel('create')">&#9889; Crea Video</div>
+        <div class="side-item" data-panel="videos" onclick="Studio.UI.switchPanel('videos')">&#127916; Video</div>
+      </div>
+      <div class="side-section">
+        <div class="side-label">Info</div>
+        <div class="side-item" data-panel="settings" onclick="Studio.UI.switchPanel('settings')">&#9881; Impostazioni</div>
+      </div>
+    </div>
+    <div class="content">
+      <div class="panel active" id="panel-projects">
+        <div class="phead"><div class="ptitle">&#128193; Progetti</div><div class="pdesc">Gestisci i tuoi progetti video. Ogni progetto può contenere più video generati.</div></div>
+        <div class="row">
+          <button class="btn btn-p" onclick="Studio.UI.switchPanel('create')">+ Nuovo Video</button>
+          <button class="btn" onclick="Studio.loadProjects()">&#8635; Aggiorna</button>
+        </div>
+        <div id="projects-grid" class="grid"></div>
+      </div>
+
+      <div class="panel" id="panel-create">
+        <div class="phead"><div class="ptitle">&#9889; Crea Nuovo Video</div><div class="pdesc">Pipeline completa: script AI → voiceover → immagini → montaggio automatico.</div></div>
+        <div class="card">
+          <div class="card-h">&#128196; 1. Progetto</div>
+          <div class="row">
+            <label>Progetto esistente</label>
+            <select id="sel-project"><option value="">-- Seleziona progetto --</option></select>
+          </div>
+          <div class="row">
+            <label>Nuovo progetto</label>
+            <input type="text" id="new-project" placeholder="Es. Canale YouTube Marketing">
+          </div>
+          <button class="btn btn-p" onclick="Studio.createProject()" id="btn-create-project">+ Crea Progetto</button>
+        </div>
+        <div class="card">
+          <div class="card-h">&#127912; 2. Tema & Stile</div>
+          <div class="row"><label>Tema video</label><input type="text" id="video-topic" placeholder="Es. Intelligenza Artificiale per PMI"></div>
+          <div class="row"><label>Titolo video</label><input type="text" id="video-title" placeholder="Opzionale (default = tema)"></div>
+          <div class="row">
+            <label>Stile</label>
+            <select id="video-style"><option value="informativo">Informativo</option><option value="divertente">Divertente</option><option value="didattico">Didattico</option><option value="motivazionale">Motivazionale</option><option value="serio">Serio</option></select>
+          </div>
+          <div class="row">
+            <label>Durata</label>
+            <select id="video-duration"><option value="30">30 secondi</option><option value="60" selected>60 secondi</option><option value="90">90 secondi</option><option value="120">120 secondi</option></select>
+          </div>
+          <div class="row">
+            <label>Lingua target</label>
+            <select id="video-lang"><option value="">Italiano (default)</option><option value="en">English</option><option value="es">Español</option><option value="fr">Français</option><option value="de">Deutsch</option></select>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-h">&#127916; 3. Pipeline</div>
+          <div class="row">
+            <button class="btn btn-p" onclick="Studio.generateScript()" id="btn-gen">&#129504; 1. Genera Script</button>
+            <button class="btn btn-s" onclick="Studio.renderVideo()" id="btn-render" disabled>&#9654; 2. Renderizza Video</button>
+          </div>
+          <div id="script-output" class="card" style="display:none;margin-top:16px"></div>
+        </div>
+      </div>
+
+      <div class="panel" id="panel-videos">
+        <div class="phead"><div class="ptitle">&#127916; Tutti i Video</div><div class="pdesc">Tutti i video generati, con stato e progresso in tempo reale.</div></div>
+        <div class="row"><button class="btn" onclick="Studio.loadVideos()">&#8635; Aggiorna</button></div>
+        <div id="videos-grid" class="grid"></div>
+      </div>
+
+      <div class="panel" id="panel-settings">
+        <div class="phead"><div class="ptitle">&#9881; Impostazioni</div><div class="pdesc">Configurazione backend e preferenze.</div></div>
+        <div class="card">
+          <div class="card-h">&#128279; Backend API</div>
+          <div class="row"><label>API URL</label><input type="text" id="api-url" placeholder="https://sistema-video-ai.vercel.app"></div>
+          <div class="row"><label>Token JWT</label><input type="password" id="api-token" placeholder="Opzionale (se auth abilitata)"></div>
+          <button class="btn btn-p" onclick="Studio.testConnection()">&#128269; Test Connessione</button>
+          <div id="conn-result" class="mt-2" style="margin-top:12px"></div>
+        </div>
+        <div class="card">
+          <div class="card-h">&#128279; Links</div>
+          <a href="../../index.html" class="btn">&#9664; Torna a AlphaOS</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay" id="modal-video">
+  <div class="modal">
+    <div class="modal-h"><span id="modal-video-title">Dettaglio Video</span><button onclick="Studio.UI.closeModal('modal-video')">&#10005;</button></div>
+    <div class="modal-b" id="modal-video-body"></div>
+    <div class="modal-f"><button class="btn" onclick="Studio.UI.closeModal('modal-video')">Chiudi</button></div>
+  </div>
+</div>
+<script>
+(function(){
+const Toast={_c:document.getElementById('toasts'),show:function(m,t){const e=document.createElement('div');e.className='toast '+(t||'');const i={s:'&#9989;',e:'&#10060;',w:'&#9888;'};e.innerHTML=(i[t]||'&#10003;')+' '+m;this._c.appendChild(e);setTimeout(()=>{e.classList.add('out');setTimeout(()=>e.remove(),300)},4000)},s:function(m){this.show(m,'s')},e:function(m){this.show(m,'e')},w:function(m){this.show(m,'w')}};
+
+const API={
+_url(){try{return localStorage.getItem('alphavideo-api-url')||'https://sistema-video-ai.vercel.app'}catch(e){return'https://sistema-video-ai.vercel.app'}},
+_token(){try{return localStorage.getItem('alphavideo-token')||''}catch(e){return''}},
+_headers(){
+const h={'Content-Type':'application/json'};
+const tok=this._token();
+if(tok)h['Authorization']='Bearer '+tok;
+return h;
+},
+async _f(url,opts){
+try{
+const r=await fetch(this._url()+url,{...opts,headers:this._headers()});
+if(!r.ok){let e='Errore '+r.status;try{const j=await r.json();if(j.detail)e=j.detail}catch(x){}throw new Error(e)}
+return r.status===204?null:r.json();
+}catch(e){
+if(e.message.includes('Failed to fetch')||e.message.includes('NetworkError'))throw new Error('Backend non raggiungibile. Verifica API URL in Impostazioni.');
+throw e;
+}
+},
+listProjects:async function(){return this._f('/api/v1/projects');},
+getProject:async function(id){return this._f('/api/v1/projects/'+id);},
+createProject:async function(d){return this._f('/api/v1/projects',{method:'POST',body:JSON.stringify(d)});},
+listVideos:async function(pid){let u='/api/v1/videos?page=1&page_size=50';if(pid)u+='&project_id='+pid;return this._f(u);},
+getVideo:async function(id){return this._f('/api/v1/videos/'+id);},
+createVideo:async function(d){return this._f('/api/v1/videos',{method:'POST',body:JSON.stringify(d)});},
+generateScript:async function(vid,d){return this._f('/api/v1/videos/'+vid+'/generate-script',{method:'POST',body:JSON.stringify(d)});},
+renderVideo:async function(vid){return this._f('/api/v1/videos/'+vid+'/render',{method:'POST'});},
+getProgress:async function(vid){return this._f('/api/v1/videos/'+vid+'/progress');},
+health:async function(){return this._f('/health');}
+};
+
+window.Studio={
+_currentProjectId:null,
+_currentVideoId:null,
+_progressTimer:null,
+
+loadConfig:function(){
+try{const url=localStorage.getItem('alphavideo-api-url');if(url)document.getElementById('api-url').value=url;const tok=localStorage.getItem('alphavideo-token');if(tok)document.getElementById('api-token').value=tok;}catch(e){}
+},
+saveConfig:function(){
+try{localStorage.setItem('alphavideo-api-url',document.getElementById('api-url').value);localStorage.setItem('alphavideo-token',document.getElementById('api-token').value);}catch(e){}
+},
+
+testConnection:async function(){
+this.saveConfig();
+const el=document.getElementById('conn-result');
+el.innerHTML='<div class="empty">Test connessione...</div>';
+try{
+const h=await API.health();
+el.innerHTML='<div style="padding:10px 14px;background:var(--bg-elevated);border-radius:6px;font-size:.85rem;color:var(--semantic-success)">&#9989; Connesso — '+JSON.stringify(h)+'</div>';
+}catch(e){
+el.innerHTML='<div style="padding:10px 14px;background:var(--bg-elevated);border-radius:6px;font-size:.85rem;color:var(--semantic-danger)">&#10060; '+e.message+'</div>';
+}
+},
+
+loadProjects:async function(){
+const el=document.getElementById('projects-grid');
+el.innerHTML='<div class="empty">Caricamento...</div>';
+try{
+const data=await API.listProjects();
+const projects=data.items||data||[];
+if(projects.length===0){
+el.innerHTML='<div class="empty">Nessun progetto. Creane uno dal pannello "Crea Video"!</div>';
+}else{
+el.innerHTML=projects.map(p=>'<div class="p-card" onclick="Studio.selectProject('+p.id+')"><div class="p-name">'+this._esc(p.title)+'</div><div class="p-meta">'+p.language.toUpperCase()+' &#8226; '+this._esc(p.status||'draft')+'</div><div class="p-stats"><span>&#128197; '+new Date(p.created_at).toLocaleDateString()+'</span></div></div>').join('');
+}
+await this._populateProjectSelect();
+}catch(e){
+el.innerHTML='<div class="empty" style="color:var(--semantic-danger)">&#10060; '+e.message+'<br><br>Configura il backend API in <a href="#" onclick="Studio.UI.switchPanel(\'settings\')">Impostazioni</a>.</div>';
+}
+},
+
+_populateProjectSelect:async function(){
+const sel=document.getElementById('sel-project');
+try{
+const data=await API.listProjects();
+const projects=data.items||data||[];
+sel.innerHTML='<option value="">-- Seleziona progetto --</option>'+projects.map(p=>'<option value="'+p.id+'">'+this._esc(p.title)+'</option>').join('');
+}catch(e){sel.innerHTML='<option value="">API non disponibile</option>';}
+},
+
+selectProject:function(id){this._currentProjectId=id;Studio.UI.switchPanel('create');const sel=document.getElementById('sel-project');if(sel)sel.value=String(id);Toast.s('Progetto selezionato');},
+
+createProject:async function(){
+const name=document.getElementById('new-project').value.trim();
+if(!name){Toast.w('Inserisci un nome per il progetto');return;}
+try{
+const p=await API.createProject({title:name,description:'',language:'it'});
+this._currentProjectId=p.id;
+Toast.s('Progetto creato: '+name);
+document.getElementById('new-project').value='';
+await this._populateProjectSelect();
+const sel=document.getElementById('sel-project');if(sel)sel.value=String(p.id);
+await this.loadProjects();
+}catch(e){Toast.e('Errore: '+e.message);}
+},
+
+loadVideos:async function(){
+this._stopProgressPolling();
+const el=document.getElementById('videos-grid');
+el.innerHTML='<div class="empty">Caricamento...</div>';
+try{
+const data=await API.listVideos();
+const videos=data.items||data||[];
+if(videos.length===0){
+el.innerHTML='<div class="empty">Nessun video. Vai su "Crea Video" per iniziare!</div>';
+return;
+}
+el.innerHTML=videos.map(v=>this._renderVideoCard(v)).join('');
+const rendering=videos.find(v=>v.status==='rendering');
+if(rendering)this._startProgressPolling(rendering.id);
+}catch(e){el.innerHTML='<div class="empty" style="color:var(--semantic-danger)">&#10060; '+e.message+'</div>';}
+},
+
+_renderVideoCard:function(v){
+const dur=v.duration?Math.round(v.duration)+'s':'';
+const progressBar=v.status==='rendering'?'<div class="progress-bar"><div class="progress-fill" style="width:'+(v.progress_percent||0)+'%"></div></div>':'';
+const step=v.progress_step?'<span>&#128296; '+this._esc(v.progress_step)+'</span>':'';
+return '<div class="v-card" onclick="Studio.showVideo('+v.id+')"><div class="v-head"><span class="status-dot '+(v.status||'pending')+'"></span><span class="v-title">'+this._esc(v.title||'Video #'+v.id)+'</span></div>'+progressBar+'<div class="v-meta"><span>'+this._esc(v.status||'pending')+'</span>'+step+(dur?'<span>&#9201; '+dur+'</span>':'')+'<span>&#128197; '+new Date(v.created_at).toLocaleDateString()+'</span></div></div>';
+},
+
+generateScript:async function(){
+const pid=this._currentProjectId||parseInt(document.getElementById('sel-project').value);
+if(!pid){Toast.w('Seleziona o crea un progetto');return;}
+const topic=document.getElementById('video-topic').value.trim();
+if(!topic){Toast.w('Inserisci un tema');return;}
+const title=document.getElementById('video-title').value.trim()||topic;
+const style=document.getElementById('video-style').value;
+const duration=parseInt(document.getElementById('video-duration').value);
+const targetLang=document.getElementById('video-lang').value;
+const btn=document.getElementById('btn-gen');
+btn.disabled=true;btn.innerHTML='Generazione...';
+try{
+const video=await API.createVideo({project_id:pid,title});
+this._currentVideoId=video.id;
+const result=await API.generateScript(video.id,{topic,duration_seconds:duration,style,target_language:targetLang||null});
+const out=document.getElementById('script-output');
+out.style.display='block';
+out.innerHTML='<div class="card-h">&#129504; Script Generato ('+result.scenes.length+' scene)</div>'+result.scenes.map((s,i)=>'<div class="scene-item"><div class="s-head"><span class="s-num">Scena '+(i+1)+'</span><span class="s-dur">&#9201; '+(s.duration||'-')+'s</span></div><div class="s-text">'+this._esc(s.content)+'</div>'+(s.image_prompt?'<div class="s-prompt">&#127912; '+this._esc(s.image_prompt)+'</div>':'')+'</div>').join('')+'<button class="btn btn-s" onclick="Studio.UI.switchPanel(\'videos\')">Vai a Video &rarr;</button>';
+document.getElementById('btn-render').disabled=false;
+Toast.s('Script generato ('+result.scenes.length+' scene)');
+this._stopProgressPolling();
+}catch(e){Toast.e('Errore: '+e.message);}
+finally{btn.disabled=false;btn.innerHTML='&#129504; 1. Genera Script';}
+},
+
+renderVideo:async function(){
+if(!this._currentVideoId){Toast.w('Genera prima uno script');return;}
+const btn=document.getElementById('btn-render');
+btn.disabled=true;btn.innerHTML='Avvio...';
+try{
+await API.renderVideo(this._currentVideoId);
+Toast.s('Rendering avviato! Monitoraggio in tempo reale...');
+this._startProgressPolling(this._currentVideoId);
+Studio.UI.switchPanel('videos');
+}catch(e){Toast.e('Errore: '+e.message);}
+finally{btn.disabled=false;btn.innerHTML='&#9654; 2. Renderizza Video';}
+},
+
+_startProgressPolling:function(vid){
+this._stopProgressPolling();
+this._progressTimer=setInterval(async()=>{
+try{
+const v=await API.getVideo(vid);
+const card=document.querySelector('.v-card[onclick*="'+vid+'"]');
+if(card){
+const newCard=document.createElement('div');
+newCard.innerHTML=this._renderVideoCard(v);
+const old=card;old.parentNode.replaceChild(newCard.firstChild,old);
+}
+if(v.status==='completed'||v.status==='error'){
+this._stopProgressPolling();
+if(v.status==='completed'){Toast.s('Video completato!')}else{Toast.e('Errore: '+(v.error_message||'sconosciuto'));this.showVideo(vid);}
+}
+}catch(e){}
+},2500);
+document.getElementById('live-tag').style.display='inline';
+},
+
+_stopProgressPolling:function(){
+if(this._progressTimer){clearInterval(this._progressTimer);this._progressTimer=null;}
+document.getElementById('live-tag').style.display='none';
+},
+
+showVideo:async function(id){
+try{
+const v=await API.getVideo(id);
+let body='<div class="row"><label>Stato</label><span class="flex" style="display:flex;align-items:center;gap:6px"><span class="status-dot '+(v.status||'pending')+'"></span>'+this._esc(v.status||'pending')+'</span></div>';
+body+='<div class="row"><label>Durata</label><span class="mono">'+(v.duration?Math.round(v.duration)+'s':'-')+'</span></div>';
+body+='<div class="row"><label>Progresso</label><span class="mono">'+(v.progress_percent||0)+'% — '+this._esc(v.progress_step||'-')+'</span></div>';
+if(v.status==='rendering'&&v.progress_percent){body+='<div class="progress-bar"><div class="progress-fill" style="width:'+v.progress_percent+'%"></div></div>';}
+if(v.output_url){body+='<div class="row"><label>Video</label><a href="'+this._esc(v.output_url)+'" target="_blank" class="btn btn-s">&#127916; Apri Video</a></div>';}
+if(v.output_path&&!v.output_url){body+='<div class="row"><label>File locale</label><code style="font-size:.7rem">'+this._esc(v.output_path)+'</code></div>';}
+if(v.error_message){body+='<div class="row"><label>Errore</label><span style="color:var(--semantic-danger);font-size:.8rem">'+this._esc(v.error_message)+'</span></div>';}
+if(v.script){body+='<div class="card-h" style="margin-top:16px">&#128221; Script</div><div style="font-size:.82rem;color:var(--text-secondary);line-height:1.6;white-space:pre-wrap;background:var(--bg-elevated);padding:14px;border-radius:6px;max-height:200px;overflow-y:auto">'+this._esc(v.script.substring(0,1500))+(v.script.length>1500?'...':'')+'</div>';}
+if(v.scenes&&v.scenes.length){body+='<div class="card-h" style="margin-top:16px">&#127912; Scene ('+v.scenes.length+')</div>'+v.scenes.map(s=>'<div class="scene-item"><div class="s-head"><span class="s-num">Scena '+(s.order+1)+'</span><span class="s-dur">&#9201; '+s.duration+'s</span></div><div class="s-text">'+this._esc(s.content)+'</div></div>').join('');}
+document.getElementById('modal-video-title').textContent=v.title||'Video #'+v.id;
+document.getElementById('modal-video-body').innerHTML=body||'<div class="empty">Nessun dettaglio</div>';
+document.getElementById('modal-video').classList.add('v');
+}catch(e){Toast.e('Errore: '+e.message);}
+},
+
+UI:{
+switchPanel:function(id){
+document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+document.querySelectorAll('.side-item').forEach(i=>i.classList.remove('active'));
+const p=document.getElementById('panel-'+id);if(p)p.classList.add('active');
+const si=document.querySelector('.side-item[data-panel="'+id+'"]');if(si)si.classList.add('active');
+if(id==='projects')Studio.loadProjects();
+if(id==='create')Studio._populateProjectSelect();
+if(id==='videos')Studio.loadVideos();
+},
+closeModal:function(id){document.getElementById(id).classList.remove('v');},
+initBoot:function(){
+const msgs=['Avvio piattaforma video AI...','Caricamento moduli...','Verifica backend...','Pronto! Esperienza super positiva attivata &#128640;'];
+const el=document.getElementById('boot-msg');let i=0;
+const iv=setInterval(()=>{i++;if(el&&i<msgs.length)el.innerHTML=msgs[i];if(i>=msgs.length){clearInterval(iv);setTimeout(()=>{document.getElementById('boot').classList.add('hidden')},500)}},400);
+}
+},
+
+_esc:function(s){if(!s)return'';const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
+};
+
+document.addEventListener('DOMContentLoaded',function(){
+Studio.loadConfig();
+document.getElementById('api-url').onchange=function(){Studio.saveConfig();};
+document.getElementById('api-token').onchange=function(){Studio.saveConfig();};
+Studio.UI.initBoot();
+setTimeout(()=>Studio.loadProjects(),800);
+if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{});}
+});
+})();
+</script>
+</body>
+</html>

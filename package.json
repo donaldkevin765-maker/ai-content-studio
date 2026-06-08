@@ -1,0 +1,25 @@
+{
+  "name": "ai-content-studio",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "dev:alphaos": "cd apps/alphaos && vercel dev",
+    "dev:videostudio": "cd apps/videostudio && vercel dev",
+    "dev": "concurrently \"npm run dev:alphaos\" \"npm run dev:videostudio\"",
+    "deploy:alphaos": "cd apps/alphaos && vercel --prod",
+    "deploy:videostudio": "cd apps/videostudio && vercel --prod",
+    "deploy": "npm run deploy:alphaos && npm run deploy:videostudio",
+    "test": "cd apps/videostudio && pytest tests/ -v",
+    "lint": "cd apps/videostudio && ruff check ."
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.0",
+    "vercel": "^33.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
