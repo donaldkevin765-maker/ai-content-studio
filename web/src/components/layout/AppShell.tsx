@@ -15,6 +15,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/lib/auth'
+import { BackendStatus } from './BackendStatus'
 
 const navigation = [
   { name: 'Progetti', href: '/', icon: Home },
@@ -118,6 +119,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </div>
           )}
         </div>
+
+        {/* Backend status */}
+        <BackendStatus sidebarOpen={sidebarOpen} />
       </aside>
 
       {/* Main content */}

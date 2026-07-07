@@ -1,0 +1,48 @@
+name: Deploy su Oracle VM
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - "**.md"
+      - ".gitignore"
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.ORACLE_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.ORACLE_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Deploy via rsync
+        run: |
+          rsync -avz --delete \
+            --exclude '.git/' \
+            --exclude 'node_modules/' \
+            --exclude '__pycache__/' \
+            --exclude '*.pyc' \
+            --exclude '.env' \
+            --exclude '.vercel/' \
+            --exclude 'backend/output/' \
+            ./ ubuntu@${{ secrets.ORACLE_HOST }}:/home/ubuntu/ai-content-studio/
+
+      - name: Rebuild & restart containers
+        run: |
+          ssh ubuntu@${{ secrets.ORACLE_HOST }} << 'EOF'
+            cd /home/ubuntu/ai-content-studio
+            docker-compose pull
+            docker-compose up -d --build --remove-orphans
+            docker image prune -f
+            echo "Deploy completato!"
+            echo "Backend: http://$(curl -s ifconfig.me):8000/health"
+          EOF
