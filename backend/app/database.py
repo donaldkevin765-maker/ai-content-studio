@@ -61,8 +61,10 @@ def _build_engine_kwargs(url: str) -> dict:
             "pool_size": settings.database_pool_size,
             "max_overflow": settings.database_max_overflow,
             "pool_pre_ping": True,
-            "connect_args": {"ssl": "require"},
         })
+        # SSL solo per PostgreSQL esterno (host non locale)
+        if not any(h in url for h in ["@localhost", "@postgres", "@127.0.0.1", "@host.docker.internal"]):
+            kw["connect_args"] = {"ssl": "require"}
     return kw
 
 
