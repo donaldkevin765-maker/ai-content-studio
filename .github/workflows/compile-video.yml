@@ -1,0 +1,68 @@
+name: Compila Video con ffmpeg
+
+on:
+  workflow_dispatch:
+    inputs:
+      video_id:
+        description: "ID del video da compilare"
+        required: true
+        type: number
+
+env:
+  PYTHON_VERSION: "3.12"
+  SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+  SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+  SUPABASE_BUCKET: ${{ secrets.SUPABASE_BUCKET || 'videos' }}
+  DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+jobs:
+  compile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Installa ffmpeg
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
+          ffmpeg -version
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('backend/pyproject.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Installa dipendenze Python
+        working-directory: ./backend
+        run: |
+          pip install --upgrade pip
+          pip install -e .
+
+      - name: Compila video ${{ inputs.video_id }}
+        working-directory: ./backend
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          SUPABASE_BUCKET: ${{ secrets.SUPABASE_BUCKET || 'videos' }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          python scripts/compile_video.py ${{ inputs.video_id }}
+
+      - name: Notifica risultato
+        if: always()
+        run: |
+          if [ ${{ job.status }} == 'success' ]; then
+            echo "✅ Video ${{ inputs.video_id }} compilato con successo!"
+          else
+            echo "❌ Compilazione video ${{ inputs.video_id }} fallita"
+          fi
