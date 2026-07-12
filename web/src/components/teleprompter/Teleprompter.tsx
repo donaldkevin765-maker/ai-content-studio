@@ -168,7 +168,7 @@ export function Teleprompter({ script = DEFAULT_SCRIPT, className }: Teleprompte
           <Button
             onClick={togglePlay}
             variant={isPlaying ? 'secondary' : 'default'}
-            size="md"
+            size="default"
             className="min-w-[100px]"
           >
             {isPlaying ? (

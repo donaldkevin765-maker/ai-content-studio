@@ -188,7 +188,7 @@ export function Recorder() {
           {/* Recording controls */}
           <div className="flex items-center justify-center gap-4">
             {!isRecording && !blob && (
-              <Button onClick={handleStart} size="xl" className="h-16 w-16 rounded-full">
+              <Button onClick={handleStart} size="icon-lg" className="h-16 w-16 rounded-full">
                 <Video className="h-7 w-7" />
                 <span className="sr-only">Registra</span>
               </Button>
