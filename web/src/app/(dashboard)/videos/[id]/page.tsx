@@ -330,7 +330,7 @@ export default function VideoDetail() {
           <Button
             onClick={startCompile}
             disabled={compiling}
-            variant="primary"
+            variant="default"
             size="lg"
           >
             {compiling ? (
