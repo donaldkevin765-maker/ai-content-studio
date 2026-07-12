@@ -175,7 +175,7 @@ async def init_db():
     engine = get_engine()
     try:
         async with engine.begin() as conn:
-            from app.models import project, video, scene, user
+            from app.models import project, video, scene, user, agent_schedule
             await conn.run_sync(Base.metadata.create_all)
         logger.info("Database SQLite pronto")
         return True

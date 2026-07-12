@@ -7,7 +7,7 @@ from loguru import logger
 
 from app.config import settings
 from app.database import init_db
-from app.api.v1 import projects, videos, auth
+from app.api.v1 import projects, videos, auth, agent
 
 
 @asynccontextmanager
@@ -40,6 +40,7 @@ app.add_middleware(
 app.include_router(auth.router, prefix="/api/v1/auth", tags=["auth"])
 app.include_router(projects.router, prefix="/api/v1/projects", tags=["projects"])
 app.include_router(videos.router, prefix="/api/v1/videos", tags=["videos"])
+app.include_router(agent.router, prefix="/api/v1/agent", tags=["agent"])
 
 
 @app.get("/api/v1/services")

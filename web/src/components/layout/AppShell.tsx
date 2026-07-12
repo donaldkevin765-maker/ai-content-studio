@@ -12,6 +12,7 @@ import {
   Settings,
   ChevronLeft,
   LogOut,
+  Bot,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/lib/auth'
@@ -19,6 +20,7 @@ import { BackendStatus } from './BackendStatus'
 
 const navigation = [
   { name: 'Progetti', href: '/', icon: Home },
+  { name: 'Assistente AI', href: '/chat', icon: Bot },
   { name: 'Social', href: '/social', icon: Share2 },
   { name: 'Impostazioni', href: '/settings', icon: Settings },
 ]
