@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Key, Save, CheckCircle2, XCircle, RefreshCw, Film } from 'lucide-react'
+import { Key, Save, CheckCircle2, XCircle, RefreshCw, Film, Loader2 } from 'lucide-react'
 import { useAuth } from '@/lib/auth'
 import { verifyToken, projects } from '@/lib/api'
 import { Card, CardContent, CardHeader } from '@/components/ui/Card'
@@ -107,8 +107,8 @@ export default function SettingsPage() {
           )}
 
           <div className="flex gap-3">
-            <Button onClick={handleSave} loading={saving} disabled={saving}>
-              <Save className="h-4 w-4" /> Salva
+            <Button onClick={handleSave} disabled={saving}>
+              {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />} Salva
             </Button>
             <Button variant="secondary" onClick={testConnection} disabled={saving}>
               <RefreshCw className="h-4 w-4" /> Test Connessione

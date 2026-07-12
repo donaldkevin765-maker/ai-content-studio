@@ -255,9 +255,8 @@ export default function VideoDetail() {
             <Button
               onClick={generateScript}
               disabled={!topic.trim() || generating}
-              loading={generating}
             >
-              {generating ? 'Generazione...' : 'Genera'}
+              {generating ? <><Loader2 className="h-4 w-4 animate-spin" /> Generazione...</> : 'Genera'}
             </Button>
           </div>
         </CardContent>
@@ -318,7 +317,6 @@ export default function VideoDetail() {
         <Button
           onClick={startRender}
           disabled={isProcessing || !video.script}
-          loading={rendering}
           size="lg"
         >
           {isProcessing ? (
@@ -332,7 +330,6 @@ export default function VideoDetail() {
           <Button
             onClick={startCompile}
             disabled={compiling}
-            loading={compiling}
             variant="primary"
             size="lg"
           >

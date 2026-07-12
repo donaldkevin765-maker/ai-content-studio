@@ -228,9 +228,8 @@ export default function SocialPage() {
               size="lg"
               onClick={handlePublish}
               disabled={!selectedVideo || !publishTitle.trim() || publishing}
-              loading={publishing}
             >
-              <Globe className="h-5 w-5" />
+              {publishing ? <Loader2 className="h-5 w-5 animate-spin" /> : <Globe className="h-5 w-5" />}
               {publishing ? 'Pubblicazione...' : 'Pubblica Ora'}
             </Button>
           </CardContent>
