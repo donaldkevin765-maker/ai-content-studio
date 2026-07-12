@@ -3,11 +3,15 @@ import random
 from pathlib import Path
 from loguru import logger
 from app.config import settings
+from app.services.nano_banana import NanoBananaGenerator
 
 
 class ImageGenerator:
     TARGET_W = settings.video_width  # 3840
     TARGET_H = settings.video_height  # 2160
+
+    def __init__(self):
+        self._nano_banana = NanoBananaGenerator()
 
     async def generate(self, prompt: str, output_path: str) -> str:
         out = Path(output_path)
@@ -27,7 +31,13 @@ class ImageGenerator:
         except Exception:
             pass
 
-        # 4. Placeholder 4K (fallback finale)
+        # 4. Nano Banana / Gemini AI (se GEMINI_API_KEY configurato)
+        if self._nano_banana.available:
+            result = await self._nano_banana.generate(prompt, str(out))
+            if result:
+                return result
+
+        # 5. Placeholder 4K (fallback finale)
         logger.info("Nessun token HF configurato. Crea un token gratuito su huggingface.co/settings/tokens")
         return await self._placeholder(prompt, str(out))
 
