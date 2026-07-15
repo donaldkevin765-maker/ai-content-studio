@@ -37,8 +37,14 @@ class ImageGenerator:
             if result:
                 return result
 
-        # 5. Placeholder 4K (fallback finale)
-        logger.info("Nessun token HF configurato. Crea un token gratuito su huggingface.co/settings/tokens")
+        # 5. Pollinations.ai (completamente gratuito, nessuna API key richiesta)
+        try:
+            return await self._pollinations(prompt, str(out))
+        except Exception as e:
+            logger.warning(f"Pollinations fallito: {e}")
+
+        # 6. Placeholder 4K (fallback finale)
+        logger.info("Nessun servizio AI configurato — uso placeholder decorativo")
         return await self._placeholder(prompt, str(out))
 
     async def _huggingface(self, prompt: str, output_path: str) -> str:
@@ -138,6 +144,40 @@ class ImageGenerator:
         except Exception as e:
             logger.error(f"Errore SD locale: {e}")
             return await self._placeholder(prompt, output_path)
+
+    async def _pollinations(self, prompt: str, output_path: str) -> str:
+        """Pollinations.ai — generazione immagini gratis, nessuna API key."""
+        import httpx
+        from urllib.parse import quote
+        from PIL import Image as PILImage
+
+        # Prompt arricchito per qualità video
+        enhanced = (
+            f"{prompt}, cinematic shot, highly detailed, 4K, photorealistic, "
+            "professional lighting, sharp focus, vibrant colors, 16:9 aspect ratio"
+        )
+
+        # Usa l'endpoint legacy che non richiede API key
+        url = f"https://image.pollinations.ai/prompt/{quote(enhanced)}"
+
+        async with httpx.AsyncClient(timeout=60.0) as client:
+            resp = await client.get(url)
+
+        resp.raise_for_status()
+
+        temp_path = output_path.replace(".png", "_raw.jpg")
+        with open(temp_path, "wb") as f:
+            f.write(resp.content)
+
+        # Upscala a 4K
+        img = PILImage.open(temp_path)
+        if img.size != (self.TARGET_W, self.TARGET_H):
+            img = img.resize((self.TARGET_W, self.TARGET_H), PILImage.LANCZOS)
+        img.save(output_path, quality=95)
+
+        Path(temp_path).unlink(missing_ok=True)
+        logger.info(f"Immagine Pollinations.ai: {output_path} ({img.size[0]}x{img.size[1]})")
+        return output_path
 
     async def _placeholder(self, prompt: str, output_path: str) -> str:
         """Placeholder 4K con gradienti e design migliore del semplice colore."""
